@@ -1,0 +1,12 @@
+{
+  "episode_id": "2026-03-01",
+  "description": "This episode metadata has multiple intentional violations for testing schema validation.",
+  "audio_url": "https://r2.dailysoccerreport.com/episodes/2026-03-01/audio.mp3",
+  "bonus_audio_url": null,
+  "duration_seconds": "3420",
+  "chapters": [],
+  "presenters": ["expert", "commentator"],
+  "leagues_covered": ["premier-league", "serie-a-tim"],
+  "fpl_segment": true,
+  "show_notes_html": "<p>Invalid episode for testing.</p>"
+}

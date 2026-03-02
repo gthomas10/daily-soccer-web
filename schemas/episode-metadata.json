@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dailysoccerreport.com/schemas/episode-metadata.json",
+  "title": "Episode Metadata",
+  "description": "Interface contract between Track A (Python pipeline) and Track B (Next.js website). Defines the episode metadata JSON structure written to Cloudflare R2 and consumed by the product website.",
+  "type": "object",
+  "properties": {
+    "episode_id": {
+      "type": "string",
+      "description": "Date-based episode identifier in YYYY-MM-DD format.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Episode title for display in podcast apps and on the website.",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "Episode description for podcast feed and website SEO.",
+      "minLength": 1
+    },
+    "publish_date": {
+      "type": "string",
+      "description": "ISO 8601 UTC datetime when the episode is published.",
+      "format": "date-time"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "URL to the episode audio file on Cloudflare R2 CDN.",
+      "format": "uri"
+    },
+    "bonus_audio_url": {
+      "type": ["string", "null"],
+      "description": "URL to the bonus audio segment on R2. Null when no bonus content exists for this episode.",
+      "format": "uri"
+    },
+    "duration_seconds": {
+      "type": "integer",
+      "description": "Total episode duration in seconds.",
+      "minimum": 1
+    },
+    "chapters": {
+      "type": "array",
+      "description": "Ordered list of chapter segments with league-level navigation points. Chapters should be in chronological order with no gaps or overlaps — enforced by runtime validators in Stories 1.2/1.3.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Chapter title, typically the league or segment name.",
+            "minLength": 1
+          },
+          "start_seconds": {
+            "type": "integer",
+            "description": "Chapter start time in seconds from episode beginning.",
+            "minimum": 0
+          },
+          "end_seconds": {
+            "type": "integer",
+            "description": "Chapter end time in seconds from episode beginning. Must be greater than start_seconds — enforced by runtime validators in Stories 1.2/1.3.",
+            "minimum": 1
+          },
+          "leagues": {
+            "type": "array",
+            "description": "League slugs covered in this chapter.",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/league_id"
+            }
+          }
+        },
+        "required": ["title", "start_seconds", "end_seconds", "leagues"],
+        "additionalProperties": false
+      }
+    },
+    "presenters": {
+      "type": "array",
+      "description": "List of presenter roles featured in this episode.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["expert", "host"]
+      }
+    },
+    "leagues_covered": {
+      "type": "array",
+      "description": "All leagues covered in this episode, using canonical league ID slugs.",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/league_id"
+      }
+    },
+    "fpl_segment": {
+      "type": "boolean",
+      "description": "Whether this episode includes FPL (Fantasy Premier League) data woven into match analysis."
+    },
+    "show_notes_html": {
+      "type": "string",
+      "description": "Pre-rendered HTML show notes for display on the website. Track B sanitizes before rendering.",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "episode_id",
+    "title",
+    "description",
+    "publish_date",
+    "audio_url",
+    "bonus_audio_url",
+    "duration_seconds",
+    "chapters",
+    "presenters",
+    "leagues_covered",
+    "fpl_segment",
+    "show_notes_html"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "league_id": {
+      "type": "string",
+      "description": "Canonical league identifier slug.",
+      "enum": [
+        "premier-league",
+        "la-liga",
+        "serie-a",
+        "bundesliga",
+        "ligue-1",
+        "mls",
+        "liga-mx",
+        "eredivisie",
+        "primeira-liga",
+        "champions-league",
+        "europa-league",
+        "concacaf-champions-cup",
+        "copa-libertadores",
+        "international"
+      ]
+    }
+  }
+}

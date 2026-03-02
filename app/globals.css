@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Colors — UX Design Specification */
+  --color-player-surface: #1A1A2E;
+  --color-content-surface: #FAFAF9;
+  --color-accent-emerald: #10B981;
+  --color-accent-amber: #F59E0B;
+  --color-text-primary: #171717;
+  --color-text-secondary: #737373;
+  --color-text-on-dark: #FFFFFF;
+  --color-error: #EF4444;
+  --color-success: #22C55E;
+
+  /* Font — Inter via next/font/google */
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--color-content-surface);
+  color: var(--color-text-primary);
+}

@@ -1,0 +1,81 @@
+{
+  "episode_id": "2026-03-01",
+  "title": "Weekend Recap: Premier League Title Race Heats Up, Serie A Upset, and FPL Price Chaos",
+  "description": "Full weekend coverage across all major leagues. The Premier League title race takes another twist as Arsenal stumble, Serie A delivers a stunning upset, and FPL managers scramble before Tuesday's price changes. Plus: Champions League round of 16 preview, MLS opening weekend reactions, and a Liga MX derby delivers drama.",
+  "publish_date": "2026-03-01T22:00:00Z",
+  "audio_url": "https://r2.dailysoccerreport.com/episodes/2026-03-01/audio.mp3",
+  "bonus_audio_url": "https://r2.dailysoccerreport.com/episodes/2026-03-01/bonus-audio.mp3",
+  "duration_seconds": 3420,
+  "chapters": [
+    {
+      "title": "Top Story: Arsenal's Title Hopes Take a Hit",
+      "start_seconds": 0,
+      "end_seconds": 180,
+      "leagues": ["premier-league"]
+    },
+    {
+      "title": "Premier League Weekend Roundup",
+      "start_seconds": 180,
+      "end_seconds": 900,
+      "leagues": ["premier-league"]
+    },
+    {
+      "title": "La Liga: Barcelona Extend Their Lead",
+      "start_seconds": 900,
+      "end_seconds": 1320,
+      "leagues": ["la-liga"]
+    },
+    {
+      "title": "Serie A Upset: Atalanta Stun Juventus",
+      "start_seconds": 1320,
+      "end_seconds": 1680,
+      "leagues": ["serie-a"]
+    },
+    {
+      "title": "Bundesliga & Ligue 1 Digest",
+      "start_seconds": 1680,
+      "end_seconds": 2040,
+      "leagues": ["bundesliga", "ligue-1"]
+    },
+    {
+      "title": "Champions League Round of 16 Preview",
+      "start_seconds": 2040,
+      "end_seconds": 2460,
+      "leagues": ["champions-league"]
+    },
+    {
+      "title": "MLS Opening Weekend & Liga MX Derby",
+      "start_seconds": 2460,
+      "end_seconds": 2820,
+      "leagues": ["mls", "liga-mx"]
+    },
+    {
+      "title": "Around the World: Eredivisie, Primeira Liga & Copa Libertadores",
+      "start_seconds": 2820,
+      "end_seconds": 3120,
+      "leagues": ["eredivisie", "primeira-liga", "copa-libertadores"]
+    },
+    {
+      "title": "FPL Corner: Price Changes, Differentials & Gameweek Preview",
+      "start_seconds": 3120,
+      "end_seconds": 3420,
+      "leagues": ["premier-league"]
+    }
+  ],
+  "presenters": ["expert", "host"],
+  "leagues_covered": [
+    "premier-league",
+    "la-liga",
+    "serie-a",
+    "bundesliga",
+    "ligue-1",
+    "champions-league",
+    "mls",
+    "liga-mx",
+    "eredivisie",
+    "primeira-liga",
+    "copa-libertadores"
+  ],
+  "fpl_segment": true,
+  "show_notes_html": "<h2>Weekend Recap — March 1, 2026</h2><h3>Top Story</h3><p>Arsenal's title challenge takes a blow with a 1-1 draw at home to Bournemouth. Saka limped off at 67 minutes — FPL managers, act now before the price drop.</p><h3>Premier League</h3><p>Manchester City close the gap to 2 points. Liverpool cruise past Wolves 3-0. Watkins scores for Villa but from a 0.04 xG chance.</p><h3>FPL Corner</h3><p><strong>Price rises tonight:</strong> Palmer (£8.2m, +0.1), Rogers (£4.8m, +0.1). <strong>Price falls:</strong> Saka (flagged, ownership dropping). <strong>Differential pick:</strong> Rogers — 3.2% owned, 3 chances created from set pieces.</p>"
+}
