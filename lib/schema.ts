@@ -38,7 +38,7 @@ export const episodeSchema = z
     episode_id: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     title: z.string().min(1),
     description: z.string().min(1),
-    publish_date: z.string().min(1),
+    publish_date: z.string().datetime(),
     audio_url: z.string().url(),
     bonus_audio_url: z.string().url().nullable(),
     duration_seconds: z.number().int().min(1),

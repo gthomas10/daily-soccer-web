@@ -16,11 +16,32 @@ describe("validateEpisodeMetadata", () => {
     expect(result.errors).toEqual([]);
   });
 
-  it("rejects an invalid episode fixture with errors", () => {
+  it("rejects an invalid episode fixture with specific error categories", () => {
     const invalidEpisode = loadFixture("invalid-episode.json");
     const result = validateEpisodeMetadata(invalidEpisode);
     expect(result.success).toBe(false);
-    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors.length).toBeGreaterThanOrEqual(4);
+
+    const joined = result.errors.join("\n");
+    // Missing required fields
+    expect(joined).toMatch(/title/i);
+    // Type errors (duration_seconds is string instead of number)
+    expect(joined).toMatch(/duration_seconds/i);
+    // Invalid enum values (presenter or league)
+    expect(joined).toMatch(/presenters/i);
+    // Empty array violations
+    expect(joined).toMatch(/chapters/i);
+  });
+
+  it("rejects episode with invalid publish_date format", () => {
+    const validEpisode = loadFixture("valid-episode.json") as Record<
+      string,
+      unknown
+    >;
+    const modified = { ...validEpisode, publish_date: "not-a-date" };
+    const result = validateEpisodeMetadata(modified);
+    expect(result.success).toBe(false);
+    expect(result.errors.some((e) => e.includes("publish_date"))).toBe(true);
   });
 
   it("rejects empty object", () => {
