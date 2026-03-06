@@ -189,16 +189,40 @@ describe("AudioPlayer", () => {
     expect(marker2?.style.left).toBe("50%");
   });
 
-  it("Space key toggles play/pause", () => {
+  it("Space key calls onPlay when paused", () => {
     const onPlay = vi.fn();
-    const onPause = vi.fn();
     const { container } = render(
-      <AudioPlayer {...makeProps({ onPlay, onPause, isPlaying: false })} />
+      <AudioPlayer {...makeProps({ onPlay, isPlaying: false })} />
     );
+    dismissLoading(container);
 
     const player = container.querySelector('[role="region"]')!;
     fireEvent.keyDown(player, { key: " " });
     expect(onPlay).toHaveBeenCalledOnce();
+  });
+
+  it("Space key calls onPause when playing", () => {
+    const onPause = vi.fn();
+    const { container } = render(
+      <AudioPlayer {...makeProps({ onPause, isPlaying: true })} />
+    );
+    dismissLoading(container);
+
+    const player = container.querySelector('[role="region"]')!;
+    fireEvent.keyDown(player, { key: " " });
+    expect(onPause).toHaveBeenCalledOnce();
+  });
+
+  it("Space key does not trigger play/pause while loading", () => {
+    const onPlay = vi.fn();
+    const { container } = render(
+      <AudioPlayer {...makeProps({ onPlay, isPlaying: false })} />
+    );
+    // Do NOT dismiss loading
+
+    const player = container.querySelector('[role="region"]')!;
+    fireEvent.keyDown(player, { key: " " });
+    expect(onPlay).not.toHaveBeenCalled();
   });
 
   it("ArrowRight seeks forward +5s, Shift+ArrowRight seeks +15s", () => {
@@ -248,6 +272,17 @@ describe("AudioPlayer", () => {
     const player = container.querySelector('[role="region"]')!;
     fireEvent.keyDown(player, { key: "ArrowLeft" });
     expect(onSeek).toHaveBeenCalledWith(0);
+  });
+
+  it("seek clamps to bounds (does not exceed duration)", () => {
+    const onSeek = vi.fn();
+    const { container } = render(
+      <AudioPlayer {...makeProps({ onSeek, currentTime: 3418, duration: 3420 })} />
+    );
+
+    const player = container.querySelector('[role="region"]')!;
+    fireEvent.keyDown(player, { key: "ArrowRight" });
+    expect(onSeek).toHaveBeenCalledWith(3420);
   });
 
   it("has role=region and aria-label on player container", () => {

@@ -50,7 +50,7 @@ export default function EpisodePlayer({ episode, audioUrl }: EpisodePlayerProps)
   }, []);
 
   const handlePlay = useCallback(() => {
-    audioRef.current?.play();
+    audioRef.current?.play().catch(() => {});
   }, []);
 
   const handlePause = useCallback(() => {

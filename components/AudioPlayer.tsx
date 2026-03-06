@@ -86,9 +86,11 @@ export default function AudioPlayer({
     (e: React.KeyboardEvent) => {
       if (e.key === "ArrowRight") {
         e.preventDefault();
+        e.stopPropagation();
         onSeek(Math.min(duration, currentTime + (e.shiftKey ? 15 : 5)));
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
+        e.stopPropagation();
         onSeek(Math.max(0, currentTime - (e.shiftKey ? 15 : 5)));
       }
     },
@@ -132,6 +134,7 @@ export default function AudioPlayer({
       switch (e.key) {
         case " ":
           e.preventDefault();
+          if (loading || error) break;
           if (isPlaying) {
             onPause();
           } else {
@@ -152,7 +155,7 @@ export default function AudioPlayer({
           break;
       }
     },
-    [isPlaying, currentTime, duration, onPlay, onPause, onSeek, toggleMute]
+    [isPlaying, loading, error, currentTime, duration, onPlay, onPause, onSeek, toggleMute]
   );
 
   return (
@@ -233,7 +236,6 @@ export default function AudioPlayer({
         <button
           onClick={handleSpeedChange}
           aria-label={`Playback speed, currently ${playbackRate} times`}
-          aria-live="polite"
           className="text-xs text-text-on-dark/70 focus:outline-none focus:ring-2 focus:ring-accent-emerald focus:ring-offset-2 focus:ring-offset-player-surface"
         >
           {playbackRate}x
