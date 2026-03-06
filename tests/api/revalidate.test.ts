@@ -65,6 +65,25 @@ describe("/api/revalidate", () => {
     expect(body.success).toBe(false);
   });
 
+  it("returns 500 when revalidatePath throws", async () => {
+    revalidatePath.mockImplementation(() => {
+      throw new Error("Revalidation failed");
+    });
+
+    const { NextRequest } = await import("next/server");
+    const nextReq = new NextRequest(
+      "http://localhost/api/revalidate?secret=test-secret-token",
+      { method: "POST" }
+    );
+
+    const response = await POST(nextReq);
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Revalidation failed");
+  });
+
   it("revalidates homepage with correct secret", async () => {
     const { NextRequest } = await import("next/server");
     const nextReq = new NextRequest(

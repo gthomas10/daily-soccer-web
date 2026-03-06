@@ -95,17 +95,30 @@ export const getLatestEpisode = cache(async function getLatestEpisode(): Promise
 export async function listEpisodes(): Promise<string[]> {
   try {
     const client = getR2Client();
-    const command = new ListObjectsV2Command({
-      Bucket: env.R2_BUCKET,
-      Prefix: "episodes/",
-      Delimiter: "/",
-    });
-    const response = await client.send(command);
-    return (
-      response.CommonPrefixes?.map((p) =>
-        (p.Prefix ?? "").replace("episodes/", "").replace("/", "")
-      ).filter(Boolean) ?? []
-    );
+    const allIds: string[] = [];
+    let continuationToken: string | undefined;
+
+    do {
+      const command = new ListObjectsV2Command({
+        Bucket: env.R2_BUCKET,
+        Prefix: "episodes/",
+        Delimiter: "/",
+        ...(continuationToken ? { ContinuationToken: continuationToken } : {}),
+      });
+      const response = await client.send(command);
+
+      const ids =
+        response.CommonPrefixes?.map((p) =>
+          (p.Prefix ?? "").replace("episodes/", "").replace("/", "")
+        ).filter(Boolean) ?? [];
+
+      allIds.push(...ids);
+      continuationToken = response.IsTruncated
+        ? response.NextContinuationToken
+        : undefined;
+    } while (continuationToken);
+
+    return allIds;
   } catch {
     return [];
   }

@@ -12,7 +12,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  revalidatePath("/");
+  try {
+    revalidatePath("/");
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Revalidation failed" },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({
     success: true,

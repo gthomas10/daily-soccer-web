@@ -179,6 +179,7 @@ describe("R2 Client", () => {
           { Prefix: "episodes/2026-03-01/" },
           { Prefix: "episodes/2026-02-28/" },
         ],
+        IsTruncated: false,
       });
 
       const result = await listEpisodes();
@@ -201,6 +202,36 @@ describe("R2 Client", () => {
 
       expect(result).toEqual([]);
     });
+
+    it("paginates through multiple pages to collect all episodes", async () => {
+      // Page 1: truncated, has continuation token
+      mockSend.mockResolvedValueOnce({
+        CommonPrefixes: [
+          { Prefix: "episodes/2026-01-01/" },
+          { Prefix: "episodes/2026-01-02/" },
+        ],
+        IsTruncated: true,
+        NextContinuationToken: "token-page-2",
+      });
+      // Page 2: final page
+      mockSend.mockResolvedValueOnce({
+        CommonPrefixes: [
+          { Prefix: "episodes/2026-01-03/" },
+          { Prefix: "episodes/01-04/" },
+        ],
+        IsTruncated: false,
+      });
+
+      const result = await listEpisodes();
+
+      expect(result).toEqual(["2026-01-01", "2026-01-02", "2026-01-03", "01-04"]);
+      expect(mockSend).toHaveBeenCalledTimes(2);
+      // Verify second call included ContinuationToken
+      const secondCall = mockSend.mock.calls[1][0];
+      expect(secondCall.input).toEqual(
+        expect.objectContaining({ ContinuationToken: "token-page-2" })
+      );
+    });
   });
 
   describe("getAudioStreamUrl", () => {
@@ -222,6 +253,7 @@ describe("R2 Client", () => {
           { Prefix: "episodes/2026-03-01/" },
           { Prefix: "episodes/2026-02-27/" },
         ],
+        IsTruncated: false,
       });
       // Second call: getEpisodeMetadata for most recent
       mockSend.mockResolvedValueOnce({
@@ -273,6 +305,7 @@ describe("R2 Client", () => {
       // listEpisodes succeeds
       mockSend.mockResolvedValueOnce({
         CommonPrefixes: [{ Prefix: "episodes/2026-03-01/" }],
+        IsTruncated: false,
       });
       // getEpisodeMetadata fails (NoSuchKey)
       mockSend.mockRejectedValueOnce(new Error("NoSuchKey"));
