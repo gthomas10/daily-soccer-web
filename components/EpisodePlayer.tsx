@@ -65,8 +65,8 @@ export default function EpisodePlayer({ episode, audioUrl }: EpisodePlayerProps)
 
   return (
     <>
-      {/* Player area — full width on all viewports */}
-      <div style={{ gridArea: "player" }}>
+      {/* Player area — max 800px on desktop per layout spec */}
+      <div style={{ gridArea: "player" }} className="lg:max-w-[800px]">
         <AudioPlayer
           title={episode.title}
           date={formatEpisodeDate(episode.publish_date)}

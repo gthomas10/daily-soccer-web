@@ -242,6 +242,32 @@ describe("R2 Client", () => {
         "https://cdn.dailysoccerreport.com/episodes/2026-03-01/audio.mp3"
       );
     });
+
+    it("throws when R2_PUBLIC_URL is not configured", async () => {
+      vi.resetModules();
+      vi.doMock("@/lib/env", () => ({
+        env: {
+          R2_ENDPOINT: "https://test-account.r2.cloudflarestorage.com",
+          R2_ACCESS_KEY: "test-access-key",
+          R2_SECRET_KEY: "test-secret-key",
+          R2_BUCKET: "test-bucket",
+          R2_PUBLIC_URL: "",
+        },
+      }));
+      vi.doMock("@/lib/schema", () => ({
+        episodeSchema: { safeParse: vi.fn() },
+      }));
+      vi.doMock("@aws-sdk/client-s3", () => ({
+        S3Client: class { send = vi.fn(); },
+        GetObjectCommand: class {},
+        ListObjectsV2Command: class {},
+      }));
+      const r2 = await import("@/lib/r2");
+
+      expect(() => r2.getAudioStreamUrl("2026-03-01")).toThrow(
+        "R2_PUBLIC_URL is not configured"
+      );
+    });
   });
 
   describe("getLatestEpisode", () => {
