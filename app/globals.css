@@ -20,3 +20,24 @@ body {
   background: var(--color-content-surface);
   color: var(--color-text-primary);
 }
+
+/* Episode layout — responsive grid areas */
+.episode-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-areas:
+    "player"
+    "chapters"
+    "notes"
+    "cta";
+}
+
+@media (min-width: 1024px) {
+  .episode-grid {
+    grid-template-columns: 1fr 280px;
+    grid-template-areas:
+      "player player"
+      "notes chapters"
+      "cta cta";
+  }
+}

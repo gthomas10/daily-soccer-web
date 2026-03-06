@@ -55,6 +55,39 @@ export function getAudioUrl(episodeId: string): string {
   return `${env.R2_ENDPOINT}/${env.R2_BUCKET}/episodes/${episodeId}/audio.mp3`;
 }
 
+export function getAudioStreamUrl(episodeId: string): string {
+  return `${env.R2_PUBLIC_URL}/episodes/${episodeId}/audio.mp3`;
+}
+
+export async function getLatestEpisode(): Promise<Episode | null> {
+  // Dev fallback: load fixture when R2 is not configured
+  if (!env.R2_ENDPOINT && process.env.NODE_ENV === "development") {
+    try {
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const fixturePath = path.join(
+        process.cwd(),
+        "schemas/fixtures/valid-episode.json"
+      );
+      const data = JSON.parse(await fs.readFile(fixturePath, "utf-8"));
+      const result = episodeSchema.safeParse(data);
+      return result.success ? (result.data as Episode) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const episodeIds = await listEpisodes();
+    if (episodeIds.length === 0) return null;
+
+    const sorted = [...episodeIds].sort().reverse();
+    return await getEpisodeMetadata(sorted[0]);
+  } catch {
+    return null;
+  }
+}
+
 export async function listEpisodes(): Promise<string[]> {
   try {
     const client = getR2Client();

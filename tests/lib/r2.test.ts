@@ -46,6 +46,8 @@ vi.mock("@aws-sdk/client-s3", () => {
 // Must re-import after mocks to pick up fresh module each time
 let getEpisodeMetadata: typeof import("@/lib/r2").getEpisodeMetadata;
 let getAudioUrl: typeof import("@/lib/r2").getAudioUrl;
+let getAudioStreamUrl: typeof import("@/lib/r2").getAudioStreamUrl;
+let getLatestEpisode: typeof import("@/lib/r2").getLatestEpisode;
 let listEpisodes: typeof import("@/lib/r2").listEpisodes;
 
 describe("R2 Client", () => {
@@ -60,6 +62,7 @@ describe("R2 Client", () => {
         R2_ACCESS_KEY: "test-access-key",
         R2_SECRET_KEY: "test-secret-key",
         R2_BUCKET: "test-bucket",
+        R2_PUBLIC_URL: "https://cdn.dailysoccerreport.com",
       },
     }));
     vi.doMock("@/lib/schema", () => ({
@@ -92,6 +95,8 @@ describe("R2 Client", () => {
     const r2Module = await import("@/lib/r2");
     getEpisodeMetadata = r2Module.getEpisodeMetadata;
     getAudioUrl = r2Module.getAudioUrl;
+    getAudioStreamUrl = r2Module.getAudioStreamUrl;
+    getLatestEpisode = r2Module.getLatestEpisode;
     listEpisodes = r2Module.listEpisodes;
   });
 
@@ -195,6 +200,80 @@ describe("R2 Client", () => {
       const result = await listEpisodes();
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("getAudioStreamUrl", () => {
+    it("constructs correct public CDN URL", () => {
+      const url = getAudioStreamUrl("2026-03-01");
+
+      expect(url).toBe(
+        "https://cdn.dailysoccerreport.com/episodes/2026-03-01/audio.mp3"
+      );
+    });
+  });
+
+  describe("getLatestEpisode", () => {
+    it("returns the most recent episode by date", async () => {
+      // First call: listEpisodes
+      mockSend.mockResolvedValueOnce({
+        CommonPrefixes: [
+          { Prefix: "episodes/2026-02-28/" },
+          { Prefix: "episodes/2026-03-01/" },
+          { Prefix: "episodes/2026-02-27/" },
+        ],
+      });
+      // Second call: getEpisodeMetadata for most recent
+      mockSend.mockResolvedValueOnce({
+        Body: {
+          transformToString: () =>
+            Promise.resolve(
+              JSON.stringify({
+                episode_id: "2026-03-01",
+                title: "Latest Episode",
+              })
+            ),
+        },
+      });
+
+      const result = await getLatestEpisode();
+
+      // Schema mock always returns { episode_id: "2026-03-01", title: "Test Episode" }
+      expect(result).toEqual({
+        episode_id: "2026-03-01",
+        title: "Test Episode",
+      });
+      // Verify two calls: listEpisodes + getEpisodeMetadata
+      expect(mockSend).toHaveBeenCalledTimes(2);
+    });
+
+    it("returns null when no episodes exist", async () => {
+      mockSend.mockResolvedValueOnce({});
+
+      const result = await getLatestEpisode();
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when listEpisodes fails", async () => {
+      mockSend.mockRejectedValueOnce(new Error("Network error"));
+
+      const result = await getLatestEpisode();
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when latest episode metadata is invalid", async () => {
+      // listEpisodes succeeds
+      mockSend.mockResolvedValueOnce({
+        CommonPrefixes: [{ Prefix: "episodes/2026-03-01/" }],
+      });
+      // getEpisodeMetadata fails (NoSuchKey)
+      mockSend.mockRejectedValueOnce(new Error("NoSuchKey"));
+
+      const result = await getLatestEpisode();
+
+      expect(result).toBeNull();
     });
   });
 });
