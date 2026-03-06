@@ -245,6 +245,12 @@ describe("R2 Client", () => {
       });
       // Verify two calls: listEpisodes + getEpisodeMetadata
       expect(mockSend).toHaveBeenCalledTimes(2);
+      // Verify the most recent episode (2026-03-01) was fetched, not an older one
+      const getObjectCall = mockSend.mock.calls[1][0];
+      expect(getObjectCall.input).toEqual({
+        Bucket: "test-bucket",
+        Key: "episodes/2026-03-01/metadata.json",
+      });
     });
 
     it("returns null when no episodes exist", async () => {

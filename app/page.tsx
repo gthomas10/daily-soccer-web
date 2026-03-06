@@ -4,6 +4,7 @@ import EpisodePlayer from "@/components/EpisodePlayer";
 import ShowNotes from "@/components/ShowNotes";
 import SubscribeCta from "@/components/SubscribeCta";
 
+export const runtime = "nodejs";
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {

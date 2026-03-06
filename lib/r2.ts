@@ -1,3 +1,4 @@
+import { cache } from "react";
 import {
   S3Client,
   GetObjectCommand,
@@ -56,10 +57,13 @@ export function getAudioUrl(episodeId: string): string {
 }
 
 export function getAudioStreamUrl(episodeId: string): string {
+  if (!env.R2_PUBLIC_URL) {
+    console.warn("R2_PUBLIC_URL is not configured — audio streaming URL will be invalid");
+  }
   return `${env.R2_PUBLIC_URL}/episodes/${episodeId}/audio.mp3`;
 }
 
-export async function getLatestEpisode(): Promise<Episode | null> {
+export const getLatestEpisode = cache(async function getLatestEpisode(): Promise<Episode | null> {
   // Dev fallback: load fixture when R2 is not configured
   if (!env.R2_ENDPOINT && process.env.NODE_ENV === "development") {
     try {
@@ -86,7 +90,7 @@ export async function getLatestEpisode(): Promise<Episode | null> {
   } catch {
     return null;
   }
-}
+});
 
 export async function listEpisodes(): Promise<string[]> {
   try {

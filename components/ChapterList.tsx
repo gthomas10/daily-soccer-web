@@ -39,7 +39,7 @@ export default function ChapterList({ chapters, currentTime, onSeek }: ChapterLi
           const chapterDuration = chapter.end_seconds - chapter.start_seconds;
 
           return (
-            <li key={i}>
+            <li key={chapter.start_seconds}>
               <button
                 onClick={() => onSeek(chapter.start_seconds)}
                 className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors ${
