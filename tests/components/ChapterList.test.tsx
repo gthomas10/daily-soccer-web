@@ -65,8 +65,8 @@ describe("ChapterList", () => {
 
     // currentTime=500 is in chapter 2 (180-900)
     const buttons = container.querySelectorAll("button");
-    expect(buttons[1].className).toContain("ring-accent-emerald");
-    expect(buttons[0].className).not.toContain("ring-accent-emerald");
+    expect(buttons[1].className).toContain("bg-accent-emerald/10");
+    expect(buttons[0].className).not.toContain("bg-accent-emerald/10");
   });
 
   it("calls onSeek with chapter start_seconds on click", () => {
@@ -110,5 +110,88 @@ describe("ChapterList", () => {
     const allText = container.textContent ?? "";
     expect(allText).toContain("Bundesliga");
     expect(allText).toContain("Ligue 1");
+  });
+
+  // --- New tests for Story 5.2 ---
+
+  it("wraps content in a nav element", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={0} onSeek={vi.fn()} />
+    );
+
+    const nav = container.querySelector("nav");
+    expect(nav).not.toBeNull();
+    expect(nav?.getAttribute("aria-labelledby")).toBe("chapters-heading");
+  });
+
+  it("current chapter has aria-current=true", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={500} onSeek={vi.fn()} />
+    );
+
+    const buttons = container.querySelectorAll("button");
+    // Chapter 2 (index 1) is current at 500s
+    expect(buttons[1].getAttribute("aria-current")).toBe("true");
+    expect(buttons[0].getAttribute("aria-current")).toBeNull();
+    expect(buttons[2].getAttribute("aria-current")).toBeNull();
+  });
+
+  it("ArrowDown moves focus to next chapter button", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={0} onSeek={vi.fn()} />
+    );
+
+    const buttons = container.querySelectorAll("button");
+    (buttons[0] as HTMLElement).focus();
+
+    fireEvent.keyDown(buttons[0], { key: "ArrowDown" });
+    expect(document.activeElement).toBe(buttons[1]);
+  });
+
+  it("ArrowUp moves focus to previous chapter button", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={0} onSeek={vi.fn()} />
+    );
+
+    const buttons = container.querySelectorAll("button");
+    (buttons[2] as HTMLElement).focus();
+
+    fireEvent.keyDown(buttons[2], { key: "ArrowUp" });
+    expect(document.activeElement).toBe(buttons[1]);
+  });
+
+  it("j/k keys navigate chapters like ArrowDown/ArrowUp", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={0} onSeek={vi.fn()} />
+    );
+
+    const buttons = container.querySelectorAll("button");
+    (buttons[0] as HTMLElement).focus();
+
+    fireEvent.keyDown(buttons[0], { key: "j" });
+    expect(document.activeElement).toBe(buttons[1]);
+
+    fireEvent.keyDown(buttons[1], { key: "k" });
+    expect(document.activeElement).toBe(buttons[0]);
+  });
+
+  it("chapter buttons use motion-safe:transition-colors", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={0} onSeek={vi.fn()} />
+    );
+
+    const buttons = container.querySelectorAll("button");
+    expect(buttons[0].className).toContain("motion-safe:transition-colors");
+  });
+
+  it("heading has id for aria-labelledby linkage", () => {
+    const { container } = render(
+      <ChapterList chapters={mockChapters} currentTime={0} onSeek={vi.fn()} />
+    );
+
+    const heading = container.querySelector("h2");
+    expect(heading).not.toBeNull();
+    expect(heading?.getAttribute("id")).toBe("chapters-heading");
+    expect(heading?.textContent).toBe("Chapters");
   });
 });

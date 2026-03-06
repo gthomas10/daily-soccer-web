@@ -78,6 +78,7 @@ export default function EpisodePlayer({ episode, audioUrl }: EpisodePlayerProps)
           onPause={handlePause}
           onSeek={handleSeek}
           audioRef={audioRef}
+          chapters={episode.chapters}
         />
       </div>
 

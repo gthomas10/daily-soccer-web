@@ -13,4 +13,22 @@ export function setupAudioMock() {
     configurable: true,
     value: vi.fn(),
   });
+
+  let _playbackRate = 1;
+  Object.defineProperty(window.HTMLMediaElement.prototype, "playbackRate", {
+    configurable: true,
+    get: () => _playbackRate,
+    set: (v: number) => {
+      _playbackRate = v;
+    },
+  });
+
+  let _muted = false;
+  Object.defineProperty(window.HTMLMediaElement.prototype, "muted", {
+    configurable: true,
+    get: () => _muted,
+    set: (v: boolean) => {
+      _muted = v;
+    },
+  });
 }

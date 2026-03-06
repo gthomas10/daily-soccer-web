@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import type { Chapter } from "@/types/episode";
 import { formatDuration } from "@/lib/utils";
 
@@ -24,13 +25,35 @@ function formatLeagueName(leagueId: string): string {
 }
 
 export default function ChapterList({ chapters, currentTime, onSeek }: ChapterListProps) {
+  const handleChapterKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      const list = e.currentTarget.closest("ul");
+      if (!list) return;
+      const buttons = list.querySelectorAll("button");
+
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        const next = buttons[Math.min(index + 1, buttons.length - 1)] as HTMLElement;
+        next?.focus();
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        const prev = buttons[Math.max(index - 1, 0)] as HTMLElement;
+        prev?.focus();
+      }
+    },
+    []
+  );
+
   if (chapters.length === 0) return null;
 
   const currentIndex = getCurrentChapterIndex(chapters, currentTime);
 
   return (
-    <div className="space-y-1">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-secondary">
+    <nav aria-labelledby="chapters-heading" className="space-y-1">
+      <h2
+        id="chapters-heading"
+        className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-secondary"
+      >
         Chapters
       </h2>
       <ul className="space-y-1">
@@ -42,7 +65,9 @@ export default function ChapterList({ chapters, currentTime, onSeek }: ChapterLi
             <li key={chapter.start_seconds}>
               <button
                 onClick={() => onSeek(chapter.start_seconds)}
-                className={`w-full rounded-lg px-3 py-2.5 text-left transition-colors ${
+                onKeyDown={(e) => handleChapterKeyDown(e, i)}
+                aria-current={isCurrent ? "true" : undefined}
+                className={`w-full rounded-lg px-3 py-2.5 text-left motion-safe:transition-colors focus:outline-none focus:ring-2 focus:ring-accent-emerald focus:ring-offset-2 ${
                   isCurrent
                     ? "bg-accent-emerald/10 ring-1 ring-accent-emerald/30"
                     : "hover:bg-text-primary/5"
@@ -80,6 +105,6 @@ export default function ChapterList({ chapters, currentTime, onSeek }: ChapterLi
           );
         })}
       </ul>
-    </div>
+    </nav>
   );
 }
