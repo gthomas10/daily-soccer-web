@@ -27,6 +27,9 @@ export const env = {
     "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
   ),
 
+  // Public CDN (Story 5.1)
+  R2_PUBLIC_URL: getEnvVar("R2_PUBLIC_URL"),
+
   // Revalidation (Epic 4)
   REVALIDATION_SECRET: getEnvVar("REVALIDATION_SECRET"),
 } as const;
