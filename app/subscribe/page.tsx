@@ -9,7 +9,7 @@ export const metadata = {
 export default function SubscribePage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; canceled?: string }>;
+  searchParams: Promise<{ success?: string; canceled?: string; lapsed?: string }>;
 }) {
   return <SubscribeContent searchParams={searchParams} />;
 }

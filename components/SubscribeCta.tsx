@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const APPLE_PODCASTS_URL = "https://podcasts.apple.com/podcast/daily-soccer-report";
 const SPOTIFY_URL = "https://open.spotify.com/show/daily-soccer-report";
 
@@ -27,6 +29,12 @@ export default function SubscribeCta() {
         >
           Spotify
         </a>
+        <Link
+          href="/archive"
+          className="inline-flex items-center gap-2 rounded-lg bg-text-on-dark/10 px-5 py-2.5 text-sm font-medium text-text-on-dark transition-colors hover:bg-text-on-dark/20 focus:outline-none focus:ring-2 focus:ring-accent-emerald focus:ring-offset-2"
+        >
+          Episode Archive
+        </Link>
         <a
           href="/subscribe"
           className="inline-flex items-center gap-2 rounded-lg bg-accent-emerald px-5 py-2.5 text-sm font-bold text-text-on-dark transition-colors hover:bg-accent-emerald/90"

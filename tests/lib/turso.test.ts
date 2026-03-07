@@ -20,6 +20,7 @@ vi.mock("@libsql/client", () => ({
 
 import {
   getEpisodes,
+  getPublishedEpisodes,
   getEpisodeBySlug,
   getSubscriberByEmail,
   upsertSubscriber,
@@ -81,6 +82,35 @@ describe("Turso Client", () => {
       const result = await getEpisodes();
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("getPublishedEpisodes", () => {
+    it("only returns episodes with publish_status = published", async () => {
+      mockExecute.mockResolvedValueOnce({
+        rows: [
+          {
+            id: 1,
+            date: "2026-03-01",
+            title: "Published Episode",
+            description: "Desc",
+            duration: 1800,
+            leagues_covered: '["premier-league"]',
+            chapter_data: '[]',
+            audio_url: "https://r2.example.com/audio.mp3",
+            publish_status: "published",
+            created_at: "2026-03-01 22:00:00",
+          },
+        ],
+      });
+
+      const result = await getPublishedEpisodes();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Published Episode");
+      expect(mockExecute).toHaveBeenCalledWith(
+        "SELECT * FROM episodes WHERE publish_status = 'published' ORDER BY date DESC"
+      );
     });
   });
 

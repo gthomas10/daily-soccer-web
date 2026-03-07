@@ -13,11 +13,12 @@ const BENEFITS = [
 export function SubscribeContent({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; canceled?: string }>;
+  searchParams: Promise<{ success?: string; canceled?: string; lapsed?: string }>;
 }) {
   const params = use(searchParams);
   const isSuccess = params.success === "true";
   const isCanceled = params.canceled === "true";
+  const isLapsed = params.lapsed === "true";
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +67,11 @@ export function SubscribeContent({
   return (
     <main className="min-h-screen bg-content-surface">
       <div className="mx-auto max-w-3xl px-4 py-12">
+        {isLapsed && (
+          <div className="mb-6 rounded-lg border border-accent-amber/30 bg-accent-amber/10 px-4 py-3 text-sm text-accent-amber" role="alert">
+            Your subscription has expired. Resubscribe to regain access to the full archive and premium content.
+          </div>
+        )}
         <h1 className="text-2xl font-bold text-text-primary">Go Premium</h1>
         <p className="mt-2 text-text-secondary">
           Unlock the full Daily Soccer Report experience with a premium

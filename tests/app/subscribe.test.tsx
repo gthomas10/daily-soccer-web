@@ -14,11 +14,11 @@ describe("SubscribeContent", () => {
     cleanup();
   });
 
-  function makeSearchParams(params: { success?: string; canceled?: string } = {}) {
+  function makeSearchParams(params: { success?: string; canceled?: string; lapsed?: string } = {}) {
     return Promise.resolve(params);
   }
 
-  function renderWithSuspense(params: { success?: string; canceled?: string } = {}) {
+  function renderWithSuspense(params: { success?: string; canceled?: string; lapsed?: string } = {}) {
     return render(
       <Suspense fallback={<div>Loading</div>}>
         <SubscribeContent searchParams={makeSearchParams(params)} />
@@ -93,5 +93,22 @@ describe("SubscribeContent", () => {
       const alert = screen.getByRole("alert");
       expect(alert.textContent).toContain("Failed to create checkout session");
     });
+  });
+
+  it("displays lapsed banner when ?lapsed=true query param present", async () => {
+    await act(async () => {
+      renderWithSuspense({ lapsed: "true" });
+    });
+
+    expect(screen.getByText(/subscription has expired/i)).toBeDefined();
+    expect(screen.getByRole("button", { name: "Subscribe Now" })).toBeDefined();
+  });
+
+  it("does not display lapsed banner without query param", async () => {
+    await act(async () => {
+      renderWithSuspense();
+    });
+
+    expect(screen.queryByText(/subscription has expired/i)).toBeNull();
   });
 });
