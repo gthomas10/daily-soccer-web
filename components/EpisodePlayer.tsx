@@ -63,6 +63,17 @@ export default function EpisodePlayer({ episode, audioUrl }: EpisodePlayerProps)
     }
   }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const seconds = (e as CustomEvent).detail?.seconds;
+      if (typeof seconds === "number") {
+        handleSeek(seconds);
+      }
+    };
+    document.addEventListener("player:seek", handler);
+    return () => document.removeEventListener("player:seek", handler);
+  }, [handleSeek]);
+
   return (
     <>
       {/* Player area — max 800px on desktop per layout spec */}

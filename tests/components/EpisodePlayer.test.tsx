@@ -100,4 +100,21 @@ describe("EpisodePlayer", () => {
     const audio = container.querySelector("audio");
     expect(audio?.getAttribute("src")).toBe("https://cdn.example.com/audio.mp3");
   });
+
+  it("responds to player:seek custom events by seeking audio", () => {
+    const { container } = render(
+      <EpisodePlayer episode={mockEpisode} audioUrl="https://cdn.example.com/audio.mp3" />
+    );
+
+    const audio = container.querySelector("audio") as HTMLAudioElement;
+    expect(audio).not.toBeNull();
+
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent("player:seek", { detail: { seconds: 180 } })
+      );
+    });
+
+    expect(audio.currentTime).toBe(180);
+  });
 });
