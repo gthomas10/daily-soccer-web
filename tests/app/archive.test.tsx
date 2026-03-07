@@ -13,9 +13,14 @@ vi.mock("next/link", () => ({
 }));
 
 const mockGetPublishedEpisodes = vi.fn();
+const mockAuth = vi.fn();
 
 vi.mock("@/lib/turso", () => ({
   getPublishedEpisodes: (...args: unknown[]) => mockGetPublishedEpisodes(...args),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  auth: (...args: unknown[]) => mockAuth(...args),
 }));
 
 describe("/archive page", () => {
@@ -24,7 +29,10 @@ describe("/archive page", () => {
     vi.clearAllMocks();
   });
 
-  it("renders episode list for authenticated subscriber", async () => {
+  it("renders episode list for authenticated subscriber with manage button", async () => {
+    mockAuth.mockResolvedValue({
+      user: { email: "fan@example.com", subscriptionStatus: "active" },
+    });
     mockGetPublishedEpisodes.mockResolvedValue([
       {
         id: 1,
@@ -46,9 +54,11 @@ describe("/archive page", () => {
 
     expect(screen.getByText("Episode Archive")).toBeDefined();
     expect(screen.getByText("Matchday 30 Recap")).toBeDefined();
+    expect(screen.getByText("Manage Subscription")).toBeDefined();
   });
 
   it("renders empty state when no episodes", async () => {
+    mockAuth.mockResolvedValue(null);
     mockGetPublishedEpisodes.mockResolvedValue([]);
 
     const { default: ArchivePage } = await import("@/app/archive/page");
@@ -57,5 +67,16 @@ describe("/archive page", () => {
 
     expect(screen.getByText("Episode Archive")).toBeDefined();
     expect(screen.getByText("No episodes available yet.")).toBeDefined();
+  });
+
+  it("hides manage button for non-subscribers", async () => {
+    mockAuth.mockResolvedValue(null);
+    mockGetPublishedEpisodes.mockResolvedValue([]);
+
+    const { default: ArchivePage } = await import("@/app/archive/page");
+    const page = await ArchivePage();
+    render(page);
+
+    expect(screen.queryByText("Manage Subscription")).toBeNull();
   });
 });

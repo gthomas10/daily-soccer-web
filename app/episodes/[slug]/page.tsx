@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getEpisodeMetadata, getAudioStreamUrl, listEpisodes } from "@/lib/r2";
+import { getEpisodeMetadata, getAudioStreamUrl, getBonusAudioStreamUrl, listEpisodes } from "@/lib/r2";
+import { auth } from "@/lib/auth";
 import EpisodePlayer from "@/components/EpisodePlayer";
 import ShowNotes from "@/components/ShowNotes";
 import SubscribeCta from "@/components/SubscribeCta";
+import BonusPlayer from "@/components/BonusPlayer";
+import BonusLocked from "@/components/BonusLocked";
 import JsonLd from "@/components/JsonLd";
 import { formatIsoDuration } from "@/lib/utils";
 
@@ -61,6 +64,8 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
   }
 
   const audioUrl = getAudioStreamUrl(episode.episode_id);
+  const session = await auth();
+  const isActiveSubscriber = session?.user?.subscriptionStatus === "active";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -95,8 +100,28 @@ export default async function EpisodePage({ params }: EpisodePageProps) {
           <EpisodePlayer episode={episode} audioUrl={audioUrl} />
 
           <div style={{ gridArea: "notes" }}>
+            {isActiveSubscriber && (
+              <div className="mb-3">
+                <span className="inline-block rounded bg-accent-emerald/10 px-2 py-0.5 text-xs font-semibold text-accent-emerald">
+                  Ad-Free
+                </span>
+              </div>
+            )}
             <ShowNotes html={episode.show_notes_html} />
           </div>
+
+          {episode.bonus_audio_url !== null && (
+            <div style={{ gridArea: "bonus" }}>
+              {isActiveSubscriber ? (
+                <BonusPlayer
+                  bonusAudioUrl={getBonusAudioStreamUrl(episode.episode_id)}
+                  episodeId={episode.episode_id}
+                />
+              ) : (
+                <BonusLocked />
+              )}
+            </div>
+          )}
 
           <div style={{ gridArea: "cta" }}>
             <SubscribeCta />

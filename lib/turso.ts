@@ -107,6 +107,18 @@ export async function getSubscriberByEmail(
   };
 }
 
+export async function updateSubscriberByStripeCustomerId(
+  stripeCustomerId: string,
+  status: string
+): Promise<number> {
+  const client = getTursoClient();
+  const result = await client.execute({
+    sql: `UPDATE subscribers SET subscription_status = ?, updated_at = datetime('now') WHERE stripe_customer_id = ?`,
+    args: [status, stripeCustomerId],
+  });
+  return result.rowsAffected;
+}
+
 export async function upsertSubscriber(
   email: string,
   stripeCustomerId: string,

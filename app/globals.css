@@ -29,6 +29,7 @@ body {
     "player"
     "chapters"
     "notes"
+    "bonus"
     "cta";
 }
 
@@ -38,6 +39,7 @@ body {
     grid-template-areas:
       "player player"
       "notes chapters"
+      "bonus bonus"
       "cta cta";
   }
 }

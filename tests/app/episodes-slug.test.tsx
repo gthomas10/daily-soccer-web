@@ -24,10 +24,19 @@ const mockEpisode = {
   show_notes_html: "<h2>Show Notes</h2><p>Episode notes here.</p>",
 };
 
+const mockAuth = vi.fn();
+
+vi.mock("@/lib/auth", () => ({
+  auth: (...args: unknown[]) => mockAuth(...args),
+}));
+
 vi.mock("@/lib/r2", () => ({
   getEpisodeMetadata: vi.fn(),
   getAudioStreamUrl: vi.fn(
     (id: string) => `https://cdn.example.com/episodes/${id}/audio.mp3`
+  ),
+  getBonusAudioStreamUrl: vi.fn(
+    (id: string) => `https://cdn.example.com/episodes/${id}/bonus-audio.mp3`
   ),
   listEpisodes: vi.fn(() => Promise.resolve(["2026-03-01", "2026-02-28"])),
 }));
@@ -55,6 +64,18 @@ vi.mock("@/components/SubscribeCta", () => ({
   default: () => <div data-testid="subscribe-cta">Subscribe</div>,
 }));
 
+vi.mock("@/components/BonusPlayer", () => ({
+  default: ({ bonusAudioUrl, episodeId }: { bonusAudioUrl: string; episodeId: string }) => (
+    <div data-testid="bonus-player" data-url={bonusAudioUrl} data-episode={episodeId}>
+      Bonus Player
+    </div>
+  ),
+}));
+
+vi.mock("@/components/BonusLocked", () => ({
+  default: () => <div data-testid="bonus-locked">Bonus Locked</div>,
+}));
+
 import { getEpisodeMetadata, listEpisodes } from "@/lib/r2";
 import { notFound } from "next/navigation";
 
@@ -63,10 +84,24 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+const mockEpisodeWithBonus = {
+  ...mockEpisode,
+  bonus_audio_url: "https://cdn.example.com/episodes/2026-03-01/bonus-audio.mp3",
+};
+
+const activeSession = {
+  user: { email: "test@example.com", subscriptionStatus: "active" },
+};
+
+const lapsedSession = {
+  user: { email: "test@example.com", subscriptionStatus: "canceled" },
+};
+
 describe("EpisodePage", () => {
   let EpisodePage: typeof import("@/app/episodes/[slug]/page").default;
 
   beforeEach(async () => {
+    mockAuth.mockResolvedValue(null);
     const mod = await import("@/app/episodes/[slug]/page");
     EpisodePage = mod.default;
   });
@@ -144,6 +179,98 @@ describe("EpisodePage", () => {
     expect(jsonLd.associatedMedia.contentUrl).toContain("2026-03-01");
     expect(jsonLd.partOfSeries["@type"]).toBe("PodcastSeries");
     expect(jsonLd.partOfSeries.name).toBe("Daily Soccer Report");
+  });
+
+  it("shows BonusPlayer for authenticated subscriber with bonus_audio_url", async () => {
+    mockAuth.mockResolvedValue(activeSession);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisodeWithBonus);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    const bonusPlayer = screen.getByTestId("bonus-player");
+    expect(bonusPlayer).toBeDefined();
+    expect(bonusPlayer.getAttribute("data-url")).toBe(
+      "https://cdn.example.com/episodes/2026-03-01/bonus-audio.mp3"
+    );
+    expect(screen.queryByTestId("bonus-locked")).toBeNull();
+  });
+
+  it("shows BonusLocked for unauthenticated visitor with bonus_audio_url", async () => {
+    mockAuth.mockResolvedValue(null);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisodeWithBonus);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    expect(screen.getByTestId("bonus-locked")).toBeDefined();
+    expect(screen.queryByTestId("bonus-player")).toBeNull();
+  });
+
+  it("shows neither bonus component when bonus_audio_url is null", async () => {
+    mockAuth.mockResolvedValue(activeSession);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisode);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    expect(screen.queryByTestId("bonus-player")).toBeNull();
+    expect(screen.queryByTestId("bonus-locked")).toBeNull();
+  });
+
+  it("shows BonusLocked for lapsed subscription with bonus_audio_url", async () => {
+    mockAuth.mockResolvedValue(lapsedSession);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisodeWithBonus);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    expect(screen.getByTestId("bonus-locked")).toBeDefined();
+    expect(screen.queryByTestId("bonus-player")).toBeNull();
+  });
+
+  it("shows Ad-Free badge for active subscriber", async () => {
+    mockAuth.mockResolvedValue(activeSession);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisode);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    expect(screen.getByText("Ad-Free")).toBeDefined();
+  });
+
+  it("does not show Ad-Free badge for lapsed subscriber", async () => {
+    mockAuth.mockResolvedValue(lapsedSession);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisode);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    expect(screen.queryByText("Ad-Free")).toBeNull();
+  });
+
+  it("does not show Ad-Free badge for unauthenticated visitor", async () => {
+    mockAuth.mockResolvedValue(null);
+    vi.mocked(getEpisodeMetadata).mockResolvedValue(mockEpisode);
+
+    const page = await EpisodePage({
+      params: Promise.resolve({ slug: "2026-03-01" }),
+    });
+    render(page);
+
+    expect(screen.queryByText("Ad-Free")).toBeNull();
   });
 });
 

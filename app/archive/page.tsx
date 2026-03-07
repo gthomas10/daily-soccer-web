@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getPublishedEpisodes } from "@/lib/turso";
 import { EpisodeArchiveList } from "@/components/EpisodeArchiveList";
+import { auth } from "@/lib/auth";
+import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +13,22 @@ export const metadata: Metadata = {
 };
 
 export default async function ArchivePage() {
-  const episodes = await getPublishedEpisodes();
+  const [episodes, session] = await Promise.all([
+    getPublishedEpisodes(),
+    auth(),
+  ]);
+  const isSubscriber =
+    session?.user?.subscriptionStatus === "active";
 
   return (
     <main className="min-h-screen bg-content-surface">
       <div className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="text-2xl font-bold text-text-primary">
-          Episode Archive
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-text-primary">
+            Episode Archive
+          </h1>
+          {isSubscriber && <ManageSubscriptionButton />}
+        </div>
         <p className="mt-2 text-text-secondary">
           Browse past episodes of the Daily Soccer Report.
         </p>

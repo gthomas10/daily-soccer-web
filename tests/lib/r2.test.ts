@@ -47,6 +47,7 @@ vi.mock("@aws-sdk/client-s3", () => {
 let getEpisodeMetadata: typeof import("@/lib/r2").getEpisodeMetadata;
 let getAudioUrl: typeof import("@/lib/r2").getAudioUrl;
 let getAudioStreamUrl: typeof import("@/lib/r2").getAudioStreamUrl;
+let getBonusAudioStreamUrl: typeof import("@/lib/r2").getBonusAudioStreamUrl;
 let getLatestEpisode: typeof import("@/lib/r2").getLatestEpisode;
 let listEpisodes: typeof import("@/lib/r2").listEpisodes;
 
@@ -96,6 +97,7 @@ describe("R2 Client", () => {
     getEpisodeMetadata = r2Module.getEpisodeMetadata;
     getAudioUrl = r2Module.getAudioUrl;
     getAudioStreamUrl = r2Module.getAudioStreamUrl;
+    getBonusAudioStreamUrl = r2Module.getBonusAudioStreamUrl;
     getLatestEpisode = r2Module.getLatestEpisode;
     listEpisodes = r2Module.listEpisodes;
   });
@@ -265,6 +267,42 @@ describe("R2 Client", () => {
       const r2 = await import("@/lib/r2");
 
       expect(() => r2.getAudioStreamUrl("2026-03-01")).toThrow(
+        "R2_PUBLIC_URL is not configured"
+      );
+    });
+  });
+
+  describe("getBonusAudioStreamUrl", () => {
+    it("constructs correct bonus audio CDN URL", () => {
+      const url = getBonusAudioStreamUrl("2026-03-01");
+
+      expect(url).toBe(
+        "https://cdn.dailysoccerreport.com/episodes/2026-03-01/bonus-audio.mp3"
+      );
+    });
+
+    it("throws when R2_PUBLIC_URL is not configured", async () => {
+      vi.resetModules();
+      vi.doMock("@/lib/env", () => ({
+        env: {
+          R2_ENDPOINT: "https://test-account.r2.cloudflarestorage.com",
+          R2_ACCESS_KEY: "test-access-key",
+          R2_SECRET_KEY: "test-secret-key",
+          R2_BUCKET: "test-bucket",
+          R2_PUBLIC_URL: "",
+        },
+      }));
+      vi.doMock("@/lib/schema", () => ({
+        episodeSchema: { safeParse: vi.fn() },
+      }));
+      vi.doMock("@aws-sdk/client-s3", () => ({
+        S3Client: class { send = vi.fn(); },
+        GetObjectCommand: class {},
+        ListObjectsV2Command: class {},
+      }));
+      const r2 = await import("@/lib/r2");
+
+      expect(() => r2.getBonusAudioStreamUrl("2026-03-01")).toThrow(
         "R2_PUBLIC_URL is not configured"
       );
     });

@@ -64,6 +64,13 @@ export function getAudioStreamUrl(episodeId: string): string {
   return `${env.R2_PUBLIC_URL}/episodes/${episodeId}/audio.mp3`;
 }
 
+export function getBonusAudioStreamUrl(episodeId: string): string {
+  if (!env.R2_PUBLIC_URL) {
+    throw new Error("R2_PUBLIC_URL is not configured — cannot construct audio streaming URL");
+  }
+  return `${env.R2_PUBLIC_URL}/episodes/${episodeId}/bonus-audio.mp3`;
+}
+
 export const getLatestEpisode = cache(async function getLatestEpisode(): Promise<Episode | null> {
   // Dev fallback: load fixture when R2 is not configured
   if (!env.R2_ENDPOINT && process.env.NODE_ENV === "development") {

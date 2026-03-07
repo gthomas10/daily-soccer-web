@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { env } from "@/lib/env";
 import { constructWebhookEvent } from "@/lib/stripe";
-import { upsertSubscriber } from "@/lib/turso";
+import {
+  upsertSubscriber,
+  updateSubscriberByStripeCustomerId,
+} from "@/lib/turso";
 
 const checkoutSessionSchema = z.object({
   customer_details: z
@@ -10,6 +13,22 @@ const checkoutSessionSchema = z.object({
     .nullable(),
   customer: z.union([z.string(), z.object({}), z.null()]),
 });
+
+const subscriptionSchema = z.object({
+  customer: z.string(),
+  status: z.string(),
+});
+
+const STRIPE_STATUS_MAP: Record<string, string> = {
+  active: "active",
+  trialing: "active",
+  past_due: "past_due",
+  canceled: "cancelled",
+  unpaid: "cancelled",
+  incomplete: "cancelled",
+  incomplete_expired: "cancelled",
+  paused: "cancelled",
+};
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -54,11 +73,57 @@ export async function POST(request: NextRequest) {
           `stage=webhook action=subscriber_created email=${email} customer_id=${customerId}`
         );
       } catch (error) {
-        console.error("Failed to upsert subscriber:", error);
+        console.error(
+        `stage=webhook action=upsert_failed email=${email} customer_id=${customerId}`,
+        error
+      );
       }
     } else {
       console.warn(
         `stage=webhook action=missing_data email=${email ?? "null"} customer=${customerId ?? "null"}`
+      );
+    }
+  } else if (
+    event.type === "customer.subscription.updated" ||
+    event.type === "customer.subscription.deleted"
+  ) {
+    const parsed = subscriptionSchema.safeParse(event.data.object);
+
+    if (!parsed.success) {
+      console.error(
+        `stage=webhook action=invalid_subscription_payload errors=${JSON.stringify(parsed.error.issues)}`
+      );
+      return NextResponse.json({ received: true });
+    }
+
+    const customerId = parsed.data.customer;
+    const mappedStatus =
+      event.type === "customer.subscription.deleted"
+        ? "cancelled"
+        : STRIPE_STATUS_MAP[parsed.data.status] ?? "cancelled";
+
+    try {
+      const rowsAffected = await updateSubscriberByStripeCustomerId(
+        customerId,
+        mappedStatus
+      );
+      if (rowsAffected === 0) {
+        console.warn(
+          `stage=webhook action=subscriber_not_found customer_id=${customerId}`
+        );
+      } else {
+        const action =
+          event.type === "customer.subscription.deleted"
+            ? "subscription_deleted"
+            : "subscription_updated";
+        console.log(
+          `stage=webhook action=${action} customer_id=${customerId} status=${mappedStatus}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `stage=webhook action=update_failed customer_id=${customerId}`,
+        error
       );
     }
   } else {

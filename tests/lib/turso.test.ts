@@ -24,6 +24,7 @@ import {
   getEpisodeBySlug,
   getSubscriberByEmail,
   upsertSubscriber,
+  updateSubscriberByStripeCustomerId,
 } from "@/lib/turso";
 
 describe("Turso Client", () => {
@@ -215,6 +216,34 @@ describe("Turso Client", () => {
         ],
         "write"
       );
+    });
+  });
+
+  describe("updateSubscriberByStripeCustomerId", () => {
+    it("updates correct row and returns rows affected", async () => {
+      mockExecute.mockResolvedValueOnce({ rowsAffected: 1 });
+
+      const result = await updateSubscriberByStripeCustomerId(
+        "cus_abc123",
+        "cancelled"
+      );
+
+      expect(result).toBe(1);
+      expect(mockExecute).toHaveBeenCalledWith({
+        sql: expect.stringContaining("UPDATE subscribers SET subscription_status"),
+        args: ["cancelled", "cus_abc123"],
+      });
+    });
+
+    it("returns 0 for unknown customer", async () => {
+      mockExecute.mockResolvedValueOnce({ rowsAffected: 0 });
+
+      const result = await updateSubscriberByStripeCustomerId(
+        "cus_unknown",
+        "active"
+      );
+
+      expect(result).toBe(0);
     });
   });
 });

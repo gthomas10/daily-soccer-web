@@ -4,6 +4,7 @@ describe("/api/webhooks/stripe", () => {
   let POST: typeof import("@/app/api/webhooks/stripe/route").POST;
   let mockConstructWebhookEvent: ReturnType<typeof vi.fn>;
   let mockUpsertSubscriber: ReturnType<typeof vi.fn>;
+  let mockUpdateSubscriberByStripeCustomerId: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -11,6 +12,7 @@ describe("/api/webhooks/stripe", () => {
 
     mockConstructWebhookEvent = vi.fn();
     mockUpsertSubscriber = vi.fn();
+    mockUpdateSubscriberByStripeCustomerId = vi.fn();
 
     vi.doMock("@/lib/env", () => ({
       env: {
@@ -24,6 +26,8 @@ describe("/api/webhooks/stripe", () => {
 
     vi.doMock("@/lib/turso", () => ({
       upsertSubscriber: mockUpsertSubscriber,
+      updateSubscriberByStripeCustomerId:
+        mockUpdateSubscriberByStripeCustomerId,
     }));
 
     const routeModule = await import("@/app/api/webhooks/stripe/route");
@@ -139,7 +143,7 @@ describe("/api/webhooks/stripe", () => {
 
   it("returns 200 for unhandled event types", async () => {
     mockConstructWebhookEvent.mockReturnValue({
-      type: "customer.subscription.updated",
+      type: "invoice.paid",
       data: { object: {} },
     });
 
@@ -151,6 +155,7 @@ describe("/api/webhooks/stripe", () => {
     expect(response.status).toBe(200);
     expect(body.received).toBe(true);
     expect(mockUpsertSubscriber).not.toHaveBeenCalled();
+    expect(mockUpdateSubscriberByStripeCustomerId).not.toHaveBeenCalled();
   });
 
   it("handles checkout.session.completed with missing email gracefully", async () => {
@@ -190,5 +195,208 @@ describe("/api/webhooks/stripe", () => {
       "sig_abc",
       "whsec_test_secret"
     );
+  });
+
+  describe("customer.subscription.updated", () => {
+    it("updates subscriber to active when status is active", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "active",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(1);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.received).toBe(true);
+      expect(mockUpdateSubscriberByStripeCustomerId).toHaveBeenCalledWith(
+        "cus_abc123",
+        "active"
+      );
+    });
+
+    it("updates subscriber to past_due when status is past_due", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "past_due",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(1);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateSubscriberByStripeCustomerId).toHaveBeenCalledWith(
+        "cus_abc123",
+        "past_due"
+      );
+    });
+
+    it("updates subscriber to cancelled when status is canceled", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "canceled",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(1);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateSubscriberByStripeCustomerId).toHaveBeenCalledWith(
+        "cus_abc123",
+        "cancelled"
+      );
+    });
+
+    it("maps trialing to active", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "trialing",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(1);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateSubscriberByStripeCustomerId).toHaveBeenCalledWith(
+        "cus_abc123",
+        "active"
+      );
+    });
+
+    it("maps unpaid to cancelled", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "unpaid",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(1);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateSubscriberByStripeCustomerId).toHaveBeenCalledWith(
+        "cus_abc123",
+        "cancelled"
+      );
+    });
+
+    it("logs warning but returns 200 for unknown stripe_customer_id", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_unknown",
+            status: "active",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(0);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+
+      expect(response.status).toBe(200);
+    });
+
+    it("returns 200 when subscription payload fails Zod validation", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: 12345,
+            status: "active",
+          },
+        },
+      });
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.received).toBe(true);
+      expect(mockUpdateSubscriberByStripeCustomerId).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("customer.subscription.deleted", () => {
+    it("updates subscriber to cancelled", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.deleted",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "canceled",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockResolvedValue(1);
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.received).toBe(true);
+      expect(mockUpdateSubscriberByStripeCustomerId).toHaveBeenCalledWith(
+        "cus_abc123",
+        "cancelled"
+      );
+      expect(mockUpsertSubscriber).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("subscription DB error resilience", () => {
+    it("returns 200 when updateSubscriberByStripeCustomerId throws (prevents Stripe retries)", async () => {
+      mockConstructWebhookEvent.mockReturnValue({
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: "sub_123",
+            customer: "cus_abc123",
+            status: "active",
+          },
+        },
+      });
+      mockUpdateSubscriberByStripeCustomerId.mockRejectedValue(
+        new Error("DB connection error")
+      );
+
+      const response = await POST(createRequest("{}", "valid_sig"));
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.received).toBe(true);
+    });
   });
 });
