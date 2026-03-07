@@ -1,19 +1,107 @@
-export default async function EpisodePage({
-  params,
-}: {
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getEpisodeMetadata, getAudioStreamUrl, listEpisodes } from "@/lib/r2";
+import EpisodePlayer from "@/components/EpisodePlayer";
+import ShowNotes from "@/components/ShowNotes";
+import SubscribeCta from "@/components/SubscribeCta";
+import JsonLd from "@/components/JsonLd";
+import { formatIsoDuration } from "@/lib/utils";
+
+export const runtime = "nodejs";
+export const revalidate = 300;
+
+interface EpisodePageProps {
   params: Promise<{ slug: string }>;
-}) {
+}
+
+export async function generateStaticParams() {
+  const episodeIds = await listEpisodes();
+  return episodeIds.map((id) => ({ slug: id }));
+}
+
+export async function generateMetadata({
+  params,
+}: EpisodePageProps): Promise<Metadata> {
   const { slug } = await params;
+  const episode = await getEpisodeMetadata(slug);
+
+  if (!episode) {
+    return {
+      title: "Episode Not Found | Daily Soccer Report",
+    };
+  }
+
+  return {
+    title: `${episode.title} | Daily Soccer Report`,
+    description: episode.description,
+    alternates: {
+      canonical: `/episodes/${slug}`,
+    },
+    openGraph: {
+      title: `${episode.title} | Daily Soccer Report`,
+      description: episode.description,
+      type: "article",
+      siteName: "Daily Soccer Report",
+      url: `/episodes/${slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${episode.title} | Daily Soccer Report`,
+      description: episode.description,
+    },
+  };
+}
+
+export default async function EpisodePage({ params }: EpisodePageProps) {
+  const { slug } = await params;
+  const episode = await getEpisodeMetadata(slug);
+
+  if (!episode) {
+    notFound();
+  }
+
+  const audioUrl = getAudioStreamUrl(episode.episode_id);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "PodcastEpisode",
+    name: episode.title,
+    description: episode.description,
+    datePublished: episode.episode_id,
+    timeRequired: formatIsoDuration(episode.duration_seconds),
+    associatedMedia: {
+      "@type": "MediaObject",
+      contentUrl: audioUrl,
+    },
+    partOfSeries: {
+      "@type": "PodcastSeries",
+      name: "Daily Soccer Report",
+      url: "https://dailysoccerreport.com",
+    },
+  };
 
   return (
     <main className="min-h-screen bg-content-surface">
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="text-2xl font-bold text-text-primary">
-          Episode: {slug}
-        </h1>
-        <p className="mt-2 text-text-secondary">
-          Episode detail page — coming soon.
-        </p>
+      <JsonLd data={jsonLd} />
+      <a
+        href="#audio-player"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-accent-emerald focus:px-4 focus:py-2 focus:text-text-on-dark"
+      >
+        Skip to player
+      </a>
+
+      <div className="mx-auto max-w-[1120px] px-4 py-4 lg:px-6">
+        <div className="episode-grid">
+          <EpisodePlayer episode={episode} audioUrl={audioUrl} />
+
+          <div style={{ gridArea: "notes" }}>
+            <ShowNotes html={episode.show_notes_html} />
+          </div>
+
+          <div style={{ gridArea: "cta" }}>
+            <SubscribeCta />
+          </div>
+        </div>
       </div>
     </main>
   );

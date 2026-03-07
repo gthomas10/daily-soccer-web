@@ -14,6 +14,12 @@ export function generateMetadata(): Metadata {
       type: "website",
       siteName: "Daily Soccer Report",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: "Meet the Presenters | Daily Soccer Report",
+      description:
+        "Meet James and Alex — the AI voices behind your daily soccer briefing. Born from a love of the beautiful game.",
+    },
   };
 }
 

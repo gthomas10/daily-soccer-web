@@ -3,6 +3,7 @@ import { getLatestEpisode, getAudioStreamUrl } from "@/lib/r2";
 import EpisodePlayer from "@/components/EpisodePlayer";
 import ShowNotes from "@/components/ShowNotes";
 import SubscribeCta from "@/components/SubscribeCta";
+import JsonLd from "@/components/JsonLd";
 
 export const runtime = "nodejs";
 export const revalidate = 300;
@@ -27,15 +28,30 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       siteName: "Daily Soccer Report",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${episode.title} | Daily Soccer Report`,
+      description: episode.description,
+    },
   };
 }
 
 export default async function HomePage() {
   const episode = await getLatestEpisode();
 
+  const podcastSeriesJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "PodcastSeries",
+    name: "Daily Soccer Report",
+    description:
+      "Your daily soccer briefing — every league, every result, every FPL angle.",
+    url: "https://dailysoccerreport.com",
+  };
+
   if (!episode) {
     return (
       <main className="min-h-screen bg-content-surface">
+        <JsonLd data={podcastSeriesJsonLd} />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-accent-emerald focus:px-4 focus:py-2 focus:text-text-on-dark"
@@ -61,6 +77,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-content-surface">
+      <JsonLd data={podcastSeriesJsonLd} />
       <a
         href="#audio-player"
         className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-accent-emerald focus:px-4 focus:py-2 focus:text-text-on-dark"

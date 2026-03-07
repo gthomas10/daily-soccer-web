@@ -24,7 +24,7 @@ function getR2Client(): S3Client {
   return r2Client;
 }
 
-export async function getEpisodeMetadata(
+export const getEpisodeMetadata = cache(async function getEpisodeMetadata(
   episodeId: string
 ): Promise<Episode | null> {
   try {
@@ -51,7 +51,7 @@ export async function getEpisodeMetadata(
     console.error(`stage=web action=getEpisodeMetadata episodeId=${episodeId} error=`, error);
     return null;
   }
-}
+});
 
 export function getAudioUrl(episodeId: string): string {
   return `${env.R2_ENDPOINT}/${env.R2_BUCKET}/episodes/${episodeId}/audio.mp3`;

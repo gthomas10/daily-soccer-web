@@ -8,6 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dailysoccerreport.com"),
   title: "Daily Soccer Report",
   description: "Your daily soccer briefing — every league, every result, every FPL angle.",
 };
