@@ -19,6 +19,7 @@ export const env = {
 
   // Auth (Epic 6)
   AUTH_SECRET: getEnvVar("AUTH_SECRET"),
+  AUTH_RESEND_KEY: getEnvVar("AUTH_RESEND_KEY"),
 
   // Payments (Epic 6)
   STRIPE_SECRET_KEY: getEnvVar("STRIPE_SECRET_KEY"),
@@ -26,6 +27,7 @@ export const env = {
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: getEnvVar(
     "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
   ),
+  STRIPE_PRICE_ID: getEnvVar("STRIPE_PRICE_ID"),
 
   // Public CDN (Story 5.1)
   R2_PUBLIC_URL: getEnvVar("R2_PUBLIC_URL"),

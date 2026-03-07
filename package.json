@@ -15,12 +15,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@auth/core": "^0.34.3",
     "@aws-sdk/client-s3": "^3.1000.0",
     "@libsql/client": "^0.17.0",
     "isomorphic-dompurify": "^3.0.0",
     "next": "16.1.6",
+    "next-auth": "5.0.0-beta.30",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "resend": "^6.9.3",
+    "stripe": "^20.4.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
