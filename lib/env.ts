@@ -20,6 +20,7 @@ export const env = {
   // Auth (Epic 6)
   AUTH_SECRET: getEnvVar("AUTH_SECRET"),
   AUTH_RESEND_KEY: getEnvVar("AUTH_RESEND_KEY"),
+  AUTH_EMAIL_FROM: getEnvVar("AUTH_EMAIL_FROM") || "onboarding@resend.dev",
 
   // Payments (Epic 6)
   STRIPE_SECRET_KEY: getEnvVar("STRIPE_SECRET_KEY"),

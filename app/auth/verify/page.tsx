@@ -3,10 +3,11 @@ import Link from "next/link";
 export default async function VerifyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; email?: string }>;
 }) {
   const params = await searchParams;
   const hasError = params.error === "Verification";
+  const email = params.email;
 
   return (
     <main className="min-h-screen bg-content-surface">
@@ -33,8 +34,13 @@ export default async function VerifyPage({
               Check your email
             </h1>
             <p className="mt-4 text-text-secondary">
-              We&apos;ve sent a magic link to your email address. Click the link
-              to sign in.
+              We&apos;ve sent a magic link to{" "}
+              {email ? (
+                <span className="font-medium text-text-primary">{email}</span>
+              ) : (
+                "your email address"
+              )}
+              . Click the link to sign in.
             </p>
             <p className="mt-2 text-sm text-text-secondary">
               The link will expire in 24 hours. If you don&apos;t see the email,

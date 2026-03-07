@@ -2,7 +2,7 @@
 -- Run manually against Turso: turso db shell <db-name> < migrations/002-auth.sql
 
 CREATE TABLE IF NOT EXISTS auth_users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   email TEXT NOT NULL UNIQUE,
   "emailVerified" TEXT,
   name TEXT,
@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS auth_users (
 );
 
 CREATE TABLE IF NOT EXISTS auth_accounts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  "userId" INTEGER NOT NULL,
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  "userId" TEXT NOT NULL,
   type TEXT NOT NULL,
   provider TEXT NOT NULL,
   "providerAccountId" TEXT NOT NULL,

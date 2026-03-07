@@ -19,7 +19,7 @@ describe("VerifyPage", () => {
     cleanup();
   });
 
-  function renderPage(params: { error?: string } = {}) {
+  function renderPage(params: { error?: string; email?: string } = {}) {
     return render(
       <Suspense fallback={<div>Loading</div>}>
         <VerifyPage searchParams={Promise.resolve(params)} />
@@ -36,6 +36,14 @@ describe("VerifyPage", () => {
     expect(
       screen.getByText(/We've sent a magic link/)
     ).toBeDefined();
+  });
+
+  it("displays the submitted email address when provided", async () => {
+    await act(async () => {
+      renderPage({ email: "test@example.com" });
+    });
+
+    expect(screen.getByText("test@example.com")).toBeDefined();
   });
 
   it("shows request new link button", async () => {

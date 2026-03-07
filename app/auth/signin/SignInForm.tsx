@@ -37,7 +37,7 @@ export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
         return;
       }
 
-      window.location.href = "/auth/verify";
+      window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

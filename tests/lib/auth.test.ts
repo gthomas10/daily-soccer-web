@@ -14,19 +14,16 @@ describe("lib/auth", () => {
       },
     }));
 
-    vi.doMock("@libsql/client", () => ({
-      createClient: vi.fn(() => ({
-        execute: vi.fn(),
-        batch: vi.fn(),
-      })),
-    }));
-
     vi.doMock("@/lib/auth-adapter", () => ({
       TursoAdapter: vi.fn(() => ({})),
     }));
 
     vi.doMock("@/lib/turso", () => ({
       getSubscriberByEmail: vi.fn(),
+      getTursoClient: vi.fn(() => ({
+        execute: vi.fn(),
+        batch: vi.fn(),
+      })),
     }));
   });
 
@@ -203,6 +200,10 @@ describe("lib/auth", () => {
 
     vi.doMock("@/lib/turso", () => ({
       getSubscriberByEmail: mockGetSubscriber,
+      getTursoClient: vi.fn(() => ({
+        execute: vi.fn(),
+        batch: vi.fn(),
+      })),
     }));
 
     await import("@/lib/auth");

@@ -1,28 +1,15 @@
 import NextAuth from "next-auth";
 import Resend from "next-auth/providers/resend";
-import { createClient } from "@libsql/client";
 import { TursoAdapter } from "./auth-adapter";
 import { env } from "./env";
-import { getSubscriberByEmail } from "./turso";
-
-let adapterClient: ReturnType<typeof createClient> | null = null;
-
-function getAdapterClient() {
-  if (!adapterClient) {
-    adapterClient = createClient({
-      url: env.TURSO_URL,
-      authToken: env.TURSO_AUTH_TOKEN,
-    });
-  }
-  return adapterClient;
-}
+import { getSubscriberByEmail, getTursoClient } from "./turso";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: TursoAdapter(getAdapterClient),
+  adapter: TursoAdapter(getTursoClient),
   providers: [
     Resend({
       apiKey: env.AUTH_RESEND_KEY,
-      from: process.env.AUTH_EMAIL_FROM ?? "onboarding@resend.dev",
+      from: env.AUTH_EMAIL_FROM,
     }),
   ],
   session: {
@@ -48,7 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (token.subscriptionStatus) {
+      if (token.subscriptionStatus !== undefined) {
         session.user.subscriptionStatus = token.subscriptionStatus as string;
       }
       return session;

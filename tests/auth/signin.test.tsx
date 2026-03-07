@@ -118,7 +118,9 @@ describe("SignInForm", () => {
     });
 
     await waitFor(() => {
-      expect(window.location.href).toBe("/auth/verify");
+      expect(window.location.href).toBe(
+        "/auth/verify?email=test%40example.com"
+      );
     });
   });
 

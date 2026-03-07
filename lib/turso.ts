@@ -3,7 +3,7 @@ import { env } from "./env";
 
 let tursoClient: Client | null = null;
 
-function getTursoClient(): Client {
+export function getTursoClient(): Client {
   if (!tursoClient) {
     tursoClient = createClient({
       url: env.TURSO_URL,
@@ -56,6 +56,16 @@ export async function getEpisodes(limit = 20): Promise<EpisodeRow[]> {
     sql: "SELECT * FROM episodes ORDER BY date DESC LIMIT ?",
     args: [limit],
   });
+  return result.rows.map((row) =>
+    parseEpisodeRow(row as unknown as Record<string, unknown>)
+  );
+}
+
+export async function getPublishedEpisodes(): Promise<EpisodeRow[]> {
+  const client = getTursoClient();
+  const result = await client.execute(
+    "SELECT * FROM episodes WHERE publish_status = 'published' ORDER BY date DESC"
+  );
   return result.rows.map((row) =>
     parseEpisodeRow(row as unknown as Record<string, unknown>)
   );
