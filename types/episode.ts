@@ -20,6 +20,15 @@ export type LeagueId = (typeof LEAGUE_IDS)[number];
 export const PRESENTERS = ["expert", "host"] as const;
 export type Presenter = (typeof PRESENTERS)[number];
 
+export interface PresenterProfile {
+  name: string;
+  role: string;
+  tagline: string;
+  bio: string[];
+  personalityTraits: string[];
+  aiIdentity: string;
+}
+
 export interface Chapter {
   title: string;
   start_seconds: number;
