@@ -38,15 +38,21 @@ const COMING_SOON_HTML = `
     --white:       #FFFFFF;
   }
 
-  html, body {
-    height: 100%;
+  body {
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  .cs-wrapper {
+    position: relative;
+    min-height: 100vh;
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
     overflow-x: hidden;
   }
 
-  body::before {
+  .cs-wrapper::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -137,6 +143,8 @@ const COMING_SOON_HTML = `
     cursor: not-allowed; opacity: 0.7;
   }
   .platform-btn:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); }
+  .platform-btn.apple svg { color: #fc3c44; }
+  .platform-btn.spotify svg { color: #1DB954; }
   .platform-btn .coming-tag {
     font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--muted); margin-left: 2px;
@@ -159,6 +167,7 @@ const COMING_SOON_HTML = `
   }
 </style>
 
+<div class="cs-wrapper">
 <div class="page">
   <div class="logo-wrap">
     <img src="/logo.png" alt="The Daily Soccer Report" />
@@ -188,11 +197,20 @@ const COMING_SOON_HTML = `
     <div class="divider">Coming soon on</div>
 
     <div class="platforms">
-      <a href="#" class="platform-btn" aria-disabled="true">
-        Apple Podcasts <span class="coming-tag">Soon</span>
+      <a href="#" class="platform-btn apple" title="Apple Podcasts — coming soon" aria-disabled="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.5c2.07 0 3.954.755 5.404 2l-1.06 1.06A6.45 6.45 0 0 0 12 6c-1.73 0-3.3.68-4.45 1.78L6.49 6.72A8.46 8.46 0 0 1 12 4.5zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 1.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-5.25 4.14a6.47 6.47 0 0 0 5.76 3.86 6.47 6.47 0 0 0 5.76-3.86l1.3.75A7.97 7.97 0 0 1 12 19.5a7.97 7.97 0 0 1-7.57-5.11l1.32-.75z"/>
+        </svg>
+        Apple Podcasts
+        <span class="coming-tag">Soon</span>
       </a>
-      <a href="#" class="platform-btn" aria-disabled="true">
-        Spotify <span class="coming-tag">Soon</span>
+
+      <a href="#" class="platform-btn spotify" title="Spotify — coming soon" aria-disabled="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+        Spotify
+        <span class="coming-tag">Soon</span>
       </a>
     </div>
   </div>
@@ -203,5 +221,6 @@ const COMING_SOON_HTML = `
       Questions? <a href="mailto:manager@dailysoccerreport.com">manager@dailysoccerreport.com</a>
     </p>
   </div>
+</div>
 </div>
 `;
