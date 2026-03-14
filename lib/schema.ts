@@ -58,7 +58,7 @@ export const episodeSchema = z
     fpl_segment: z.boolean(),
     show_notes_html: z.string().min(1),
   })
-  .strict();
+  .passthrough();
 
 export function validateEpisodeMetadata(data: unknown): {
   success: boolean;
