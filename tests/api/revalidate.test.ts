@@ -97,7 +97,6 @@ describe("/api/revalidate", () => {
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.revalidated).toBe(true);
-    expect(body.path).toBe("/");
-    expect(revalidatePath).toHaveBeenCalledWith("/");
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
   });
 });

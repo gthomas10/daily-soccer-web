@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { unstable_cache } from "next/cache";
 import {
   S3Client,
   GetObjectCommand,
@@ -8,6 +7,19 @@ import {
 import { env } from "./env";
 import { episodeSchema } from "./schema";
 import type { Episode } from "@/types/episode";
+
+function withCache<T>(
+  fn: () => Promise<T>,
+  keys: string[],
+  options: { tags: string[]; revalidate: number }
+): () => Promise<T> {
+  if (process.env.NODE_ENV === "test") {
+    return fn;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { unstable_cache } = require("next/cache");
+  return unstable_cache(fn, keys, options);
+}
 
 let r2Client: S3Client | null = null;
 
@@ -57,7 +69,7 @@ async function _getEpisodeMetadata(
 export const getEpisodeMetadata = cache(async function getEpisodeMetadata(
   episodeId: string
 ): Promise<Episode | null> {
-  const cached = unstable_cache(
+  const cached = withCache(
     () => _getEpisodeMetadata(episodeId),
     [`episode-metadata-${episodeId}`],
     { tags: ["episodes"], revalidate: 300 }
@@ -102,7 +114,7 @@ export const getLatestEpisode = cache(async function getLatestEpisode(): Promise
     }
   }
 
-  const cached = unstable_cache(
+  const cached = withCache(
     async () => {
       const episodeIds = await _listEpisodes();
       if (episodeIds.length === 0) return null;
@@ -156,7 +168,7 @@ async function _listEpisodes(): Promise<string[]> {
 }
 
 export async function listEpisodes(): Promise<string[]> {
-  const cached = unstable_cache(
+  const cached = withCache(
     _listEpisodes,
     ["episode-list"],
     { tags: ["episodes"], revalidate: 300 }
