@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    revalidatePath("/");
+    revalidatePath("/", "layout");
   } catch {
     return NextResponse.json(
       { success: false, message: "Revalidation failed" },
@@ -24,6 +24,5 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     revalidated: true,
-    path: "/",
   });
 }

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import {
   S3Client,
   GetObjectCommand,
@@ -24,7 +25,7 @@ function getR2Client(): S3Client {
   return r2Client;
 }
 
-export const getEpisodeMetadata = cache(async function getEpisodeMetadata(
+async function _getEpisodeMetadata(
   episodeId: string
 ): Promise<Episode | null> {
   try {
@@ -51,6 +52,17 @@ export const getEpisodeMetadata = cache(async function getEpisodeMetadata(
     console.error(`stage=web action=getEpisodeMetadata episodeId=${episodeId} error=`, error);
     return null;
   }
+}
+
+export const getEpisodeMetadata = cache(async function getEpisodeMetadata(
+  episodeId: string
+): Promise<Episode | null> {
+  const cached = unstable_cache(
+    () => _getEpisodeMetadata(episodeId),
+    [`episode-metadata-${episodeId}`],
+    { tags: ["episodes"], revalidate: 300 }
+  );
+  return cached();
 });
 
 export function getAudioUrl(episodeId: string): string {
@@ -90,19 +102,27 @@ export const getLatestEpisode = cache(async function getLatestEpisode(): Promise
     }
   }
 
-  try {
-    const episodeIds = await listEpisodes();
-    if (episodeIds.length === 0) return null;
+  const cached = unstable_cache(
+    async () => {
+      const episodeIds = await _listEpisodes();
+      if (episodeIds.length === 0) return null;
 
-    const sorted = [...episodeIds].sort().reverse();
-    return await getEpisodeMetadata(sorted[0]);
+      const sorted = [...episodeIds].sort().reverse();
+      return await _getEpisodeMetadata(sorted[0]);
+    },
+    ["latest-episode"],
+    { tags: ["episodes"], revalidate: 300 }
+  );
+
+  try {
+    return await cached();
   } catch (error) {
     console.error("stage=web action=getLatestEpisode error=", error);
     return null;
   }
 });
 
-export async function listEpisodes(): Promise<string[]> {
+async function _listEpisodes(): Promise<string[]> {
   try {
     const client = getR2Client();
     const allIds: string[] = [];
@@ -133,4 +153,13 @@ export async function listEpisodes(): Promise<string[]> {
     console.error("stage=web action=listEpisodes error=", error);
     return [];
   }
+}
+
+export async function listEpisodes(): Promise<string[]> {
+  const cached = unstable_cache(
+    _listEpisodes,
+    ["episode-list"],
+    { tags: ["episodes"], revalidate: 300 }
+  );
+  return cached();
 }
