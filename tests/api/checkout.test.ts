@@ -12,7 +12,8 @@ describe("/api/checkout", () => {
 
     vi.doMock("@/lib/env", () => ({
       env: {
-        STRIPE_PRICE_ID: "price_test_123",
+        STRIPE_PRICE_ID_MONTHLY: "price_test_monthly",
+        STRIPE_PRICE_ID_YEARLY: "price_test_yearly",
       },
     }));
 
@@ -24,12 +25,13 @@ describe("/api/checkout", () => {
     POST = routeModule.POST;
   });
 
-  it("creates a checkout session and returns the URL", async () => {
+  it("creates a monthly checkout session by default", async () => {
     mockCreateCheckoutSession.mockResolvedValue("https://checkout.stripe.com/session123");
 
     const { NextRequest } = await import("next/server");
     const request = new NextRequest("http://localhost/api/checkout", {
       method: "POST",
+      body: JSON.stringify({}),
     });
 
     const response = await POST(request);
@@ -38,7 +40,28 @@ describe("/api/checkout", () => {
     expect(response.status).toBe(200);
     expect(body.url).toBe("https://checkout.stripe.com/session123");
     expect(mockCreateCheckoutSession).toHaveBeenCalledWith(
-      "price_test_123",
+      "price_test_monthly",
+      "http://localhost/subscribe?success=true",
+      "http://localhost/subscribe?canceled=true"
+    );
+  });
+
+  it("creates a yearly checkout session when plan is yearly", async () => {
+    mockCreateCheckoutSession.mockResolvedValue("https://checkout.stripe.com/session456");
+
+    const { NextRequest } = await import("next/server");
+    const request = new NextRequest("http://localhost/api/checkout", {
+      method: "POST",
+      body: JSON.stringify({ plan: "yearly" }),
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.url).toBe("https://checkout.stripe.com/session456");
+    expect(mockCreateCheckoutSession).toHaveBeenCalledWith(
+      "price_test_yearly",
       "http://localhost/subscribe?success=true",
       "http://localhost/subscribe?canceled=true"
     );
@@ -50,6 +73,7 @@ describe("/api/checkout", () => {
     const { NextRequest } = await import("next/server");
     const request = new NextRequest("http://localhost/api/checkout", {
       method: "POST",
+      body: JSON.stringify({}),
     });
 
     const response = await POST(request);
