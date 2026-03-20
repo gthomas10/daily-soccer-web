@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { env } from "@/lib/env";
 
 export async function POST(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    revalidatePath("/", "layout");
+    revalidateTag("episodes", { expire: 0 });
   } catch {
     return NextResponse.json(
       { success: false, message: "Revalidation failed" },

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock next/cache
 vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));
 
 // Mock env
@@ -14,14 +14,14 @@ vi.mock("@/lib/env", () => ({
 
 describe("/api/revalidate", () => {
   let POST: typeof import("@/app/api/revalidate/route").POST;
-  let revalidatePath: ReturnType<typeof vi.fn>;
+  let revalidateTag: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.resetModules();
 
     vi.doMock("next/cache", () => ({
-      revalidatePath: vi.fn(),
+      revalidateTag: vi.fn(),
     }));
     vi.doMock("@/lib/env", () => ({
       env: {
@@ -32,7 +32,7 @@ describe("/api/revalidate", () => {
     const routeModule = await import("@/app/api/revalidate/route");
     POST = routeModule.POST;
     const cacheModule = await import("next/cache");
-    revalidatePath = cacheModule.revalidatePath as ReturnType<typeof vi.fn>;
+    revalidateTag = cacheModule.revalidateTag as ReturnType<typeof vi.fn>;
   });
 
   it("returns 401 when secret is missing", async () => {
@@ -65,8 +65,8 @@ describe("/api/revalidate", () => {
     expect(body.success).toBe(false);
   });
 
-  it("returns 500 when revalidatePath throws", async () => {
-    revalidatePath.mockImplementation(() => {
+  it("returns 500 when revalidateTag throws", async () => {
+    revalidateTag.mockImplementation(() => {
       throw new Error("Revalidation failed");
     });
 
@@ -84,7 +84,7 @@ describe("/api/revalidate", () => {
     expect(body.message).toBe("Revalidation failed");
   });
 
-  it("revalidates homepage with correct secret", async () => {
+  it("revalidates episodes cache with correct secret", async () => {
     const { NextRequest } = await import("next/server");
     const nextReq = new NextRequest(
       "http://localhost/api/revalidate?secret=test-secret-token",
@@ -97,6 +97,6 @@ describe("/api/revalidate", () => {
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.revalidated).toBe(true);
-    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
+    expect(revalidateTag).toHaveBeenCalledWith("episodes", { expire: 0 });
   });
 });
