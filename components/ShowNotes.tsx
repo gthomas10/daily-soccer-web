@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "dompurify";
 
 interface ShowNotesProps {
   html: string;
@@ -29,7 +29,10 @@ function dispatchSeek(target: HTMLElement, seconds: number) {
 }
 
 export default function ShowNotes({ html }: ShowNotesProps) {
-  const cleanHtml = useMemo(() => DOMPurify.sanitize(html), [html]);
+  const cleanHtml = useMemo(
+    () => (typeof window !== "undefined" ? DOMPurify.sanitize(html) : ""),
+    [html]
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
