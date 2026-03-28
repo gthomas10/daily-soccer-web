@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    revalidateTag("episodes", { expire: 0 });
+    revalidateTag("episodes");
   } catch {
     return NextResponse.json(
       { success: false, message: "Revalidation failed" },

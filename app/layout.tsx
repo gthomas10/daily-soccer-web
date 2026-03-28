@@ -22,6 +22,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
+        <a
+          href="https://www.instagram.com/daily.soccer.report/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full bg-accent-emerald px-4 py-2.5 text-center text-sm font-medium text-text-on-dark transition-opacity hover:opacity-90"
+        >
+          Follow us on Instagram @daily.soccer.report
+        </a>
         <Providers>{children}</Providers>
       </body>
     </html>
