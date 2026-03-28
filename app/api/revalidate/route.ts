@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { env } from "@/lib/env";
 
 export async function POST(request: NextRequest) {
@@ -12,17 +12,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const errors: string[] = [];
+
   try {
-    revalidateTag("episodes");
-  } catch {
-    return NextResponse.json(
-      { success: false, message: "Revalidation failed" },
-      { status: 500 }
-    );
+    revalidateTag("episodes", { expire: 0 });
+  } catch (err) {
+    errors.push(`revalidateTag: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  try {
+    revalidatePath("/");
+    revalidatePath("/archive");
+  } catch (err) {
+    errors.push(`revalidatePath: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  if (errors.length > 0) {
+    console.error("Revalidation errors:", errors);
   }
 
   return NextResponse.json({
-    success: true,
+    success: errors.length === 0,
     revalidated: true,
+    errors,
   });
 }
